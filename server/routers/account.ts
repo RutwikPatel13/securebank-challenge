@@ -125,22 +125,20 @@ export const accountRouter = router({
         .limit(1)
         .get();
 
-      // Update account balance
+      // Calculate new balance
+      const newBalance = account.balance + amount;
+
+      // Update account balance in database
       await db
         .update(accounts)
         .set({
-          balance: account.balance + amount,
+          balance: newBalance,
         })
         .where(eq(accounts.id, input.accountId));
 
-      let finalBalance = account.balance;
-      for (let i = 0; i < 100; i++) {
-        finalBalance = finalBalance + amount / 100;
-      }
-
       return {
         transaction,
-        newBalance: finalBalance, // This will be slightly off due to float precision
+        newBalance,
       };
     }),
 
