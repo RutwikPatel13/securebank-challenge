@@ -3,27 +3,6 @@
  */
 import { expect as jestExpect } from "@jest/globals";
 
-/**
- * PERF-405: Missing Transactions
- * 
- * Bug: After multiple funding events, not all transactions appear in history.
- * 
- * Root Cause: When fetching the created transaction after insert, the code used:
- *   db.select().from(transactions).orderBy(transactions.createdAt).limit(1).get()
- * 
- * This returns the OLDEST transaction (ascending order by createdAt), not the
- * newly created one. So after multiple fundings:
- * - 1st funding: returns transaction 1 (correct by accident)
- * - 2nd funding: returns transaction 1 (wrong - should be 2)
- * - 3rd funding: returns transaction 1 (wrong - should be 3)
- * 
- * Fix: Filter by accountId and order by id DESC to get the most recent transaction:
- *   db.select().from(transactions)
- *     .where(eq(transactions.accountId, input.accountId))
- *     .orderBy(desc(transactions.id))
- *     .limit(1).get()
- */
-
 describe("Transaction Fetch - PERF-405 (Missing Transactions)", () => {
   describe("Transaction ordering logic", () => {
     it("should understand that ascending order returns oldest first", () => {
