@@ -109,7 +109,14 @@ export default function SignupPage() {
                         const commonPasswords = ["password", "12345678", "qwerty"];
                         return !commonPasswords.includes(value.toLowerCase()) || "Password is too common";
                       },
-                      hasNumber: (value) => /\d/.test(value) || "Password must contain a number",
+                      hasUppercase: (value) =>
+                        /[A-Z]/.test(value) || "Password must contain at least one uppercase letter",
+                      hasLowercase: (value) =>
+                        /[a-z]/.test(value) || "Password must contain at least one lowercase letter",
+                      hasNumber: (value) =>
+                        /[0-9]/.test(value) || "Password must contain at least one number",
+                      hasSpecialChar: (value) =>
+                        /[^A-Za-z0-9]/.test(value) || "Password must contain at least one special character",
                     },
                   })}
                   type="password"
