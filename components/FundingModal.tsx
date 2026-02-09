@@ -4,6 +4,37 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { trpc } from "@/lib/trpc/client";
 
+// Luhn algorithm to validate card numbers
+function isValidCardNumber(cardNumber: string): boolean {
+  // Remove any spaces or dashes
+  const digits = cardNumber.replace(/[\s-]/g, "");
+
+  // Must be all digits and 13-19 characters (standard card lengths)
+  if (!/^\d{13,19}$/.test(digits)) {
+    return false;
+  }
+
+  let sum = 0;
+  let isEven = false;
+
+  // Loop through digits from right to left
+  for (let i = digits.length - 1; i >= 0; i--) {
+    let digit = parseInt(digits[i], 10);
+
+    if (isEven) {
+      digit *= 2;
+      if (digit > 9) {
+        digit -= 9;
+      }
+    }
+
+    sum += digit;
+    isEven = !isEven;
+  }
+
+  return sum % 10 === 0;
+}
+
 interface FundingModalProps {
   accountId: number;
   onClose: () => void;
@@ -113,13 +144,27 @@ export function FundingModal({ accountId, onClose, onSuccess }: FundingModalProp
               {...register("accountNumber", {
                 required: `${fundingType === "card" ? "Card" : "Account"} number is required`,
                 pattern: {
-                  value: fundingType === "card" ? /^\d{16}$/ : /^\d+$/,
-                  message: fundingType === "card" ? "Card number must be 16 digits" : "Invalid account number",
+                  value: fundingType === "card" ? /^\d{13,19}$/ : /^\d+$/,
+                  message: fundingType === "card" ? "Card number must be 13-19 digits" : "Invalid account number",
                 },
                 validate: {
                   validCard: (value) => {
                     if (fundingType !== "card") return true;
-                    return value.startsWith("4") || value.startsWith("5") || "Invalid card number";
+                    // Check card type prefix (Visa, Mastercard, Amex, Discover)
+                    const validPrefix =
+                      value.startsWith("4") || // Visa
+                      value.startsWith("5") || // Mastercard
+                      value.startsWith("34") || // Amex
+                      value.startsWith("37") || // Amex
+                      value.startsWith("6"); // Discover
+                    if (!validPrefix) {
+                      return "Invalid card type";
+                    }
+                    // Validate using Luhn algorithm
+                    if (!isValidCardNumber(value)) {
+                      return "Invalid card number (failed checksum)";
+                    }
+                    return true;
                   },
                 },
               })}
