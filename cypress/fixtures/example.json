@@ -1,0 +1,42 @@
+{
+  "testUser": {
+    "firstName": "Test",
+    "lastName": "User",
+    "email": "test@example.com",
+    "password": "SecurePass123!",
+    "phone": "555-123-4567",
+    "dateOfBirth": "1990-01-15",
+    "ssn": "123-45-6789",
+    "address": "123 Main Street",
+    "city": "New York",
+    "state": "NY",
+    "zipCode": "10001"
+  },
+  "invalidEmails": [
+    "invalid",
+    "test@",
+    "@example.com",
+    "test@.com",
+    "test@example",
+    "test@example..com"
+  ],
+  "weakPasswords": [
+    "123",
+    "password",
+    "12345678",
+    "abcdefgh"
+  ],
+  "validCardNumbers": {
+    "visa": "4111111111111111",
+    "mastercard": "5500000000000004",
+    "amex": "340000000000009",
+    "discover": "6011000000000004"
+  },
+  "invalidCardNumbers": [
+    "1234567890123456",
+    "0000000000000000",
+    "123",
+    "abcdefghijklmnop"
+  ]
+}
+
