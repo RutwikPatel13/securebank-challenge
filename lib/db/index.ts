@@ -24,6 +24,7 @@ export function initDb() {
       phone_number TEXT NOT NULL,
       date_of_birth TEXT NOT NULL,
       ssn TEXT NOT NULL,
+      ssn_last_4 TEXT NOT NULL,
       address TEXT NOT NULL,
       city TEXT NOT NULL,
       state TEXT NOT NULL,

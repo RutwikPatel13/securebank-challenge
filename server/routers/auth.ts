@@ -6,6 +6,7 @@ import { publicProcedure, router } from "../trpc";
 import { db } from "@/lib/db";
 import { users, sessions } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
+import { encrypt, getSSNLast4 } from "@/lib/crypto";
 
 export const authRouter = router({
   signup: publicProcedure
@@ -53,9 +54,16 @@ export const authRouter = router({
 
       const hashedPassword = await bcrypt.hash(input.password, 10);
 
+      // Encrypt SSN using AES-256-GCM (reversible for compliance needs)
+      const encryptedSsn = encrypt(input.ssn);
+      // Store last 4 digits for display purposes (e.g., "***-**-6789")
+      const ssnLast4 = getSSNLast4(input.ssn);
+
       await db.insert(users).values({
         ...input,
         password: hashedPassword,
+        ssn: encryptedSsn,
+        ssnLast4,
       });
 
       // Fetch the created user
@@ -89,7 +97,8 @@ export const authRouter = router({
         (ctx.res as Headers).set("Set-Cookie", `session=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=604800`);
       }
 
-      return { user: { ...user, password: undefined }, token };
+      // Exclude sensitive data (password and hashed SSN) from response
+      return { user: { ...user, password: undefined, ssn: undefined }, token };
     }),
 
   login: publicProcedure
