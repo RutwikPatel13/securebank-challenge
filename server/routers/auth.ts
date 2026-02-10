@@ -7,12 +7,31 @@ import { db } from "@/lib/db";
 import { users, sessions } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { encrypt, getSSNLast4 } from "@/lib/crypto";
+import { US_STATE_CODES, EMAIL_TYPO_DOMAINS, isValidPhoneNumber } from "@/lib/validation";
 
 export const authRouter = router({
   signup: publicProcedure
     .input(
       z.object({
-        email: z.string().email().toLowerCase(),
+        email: z
+          .string()
+          .email("Invalid email address")
+          .transform((email) => email.toLowerCase())
+          .refine(
+            (email) => {
+              const domain = email.split("@")[1];
+              return !EMAIL_TYPO_DOMAINS[domain];
+            },
+            (email) => {
+              const domain = email.split("@")[1];
+              const suggestion = EMAIL_TYPO_DOMAINS[domain];
+              return {
+                message: suggestion
+                  ? `Did you mean ${email.replace(domain, suggestion)}?`
+                  : "Invalid email domain",
+              };
+            }
+          ),
         password: z
           .string()
           .min(8, "Password must be at least 8 characters")
@@ -22,7 +41,12 @@ export const authRouter = router({
           .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character"),
         firstName: z.string().min(1),
         lastName: z.string().min(1),
-        phoneNumber: z.string().regex(/^\+?\d{10,15}$/),
+        phoneNumber: z
+          .string()
+          .refine(isValidPhoneNumber, {
+            message:
+              "Phone number must be a valid US number (10 digits) or international format (+country code + number)",
+          }),
         dateOfBirth: z.string().refine(
           (date) => {
             const birthDate = new Date(date);
@@ -38,7 +62,12 @@ export const authRouter = router({
         ssn: z.string().regex(/^\d{9}$/),
         address: z.string().min(1),
         city: z.string().min(1),
-        state: z.string().length(2).toUpperCase(),
+        state: z
+          .string()
+          .transform((state) => state.toUpperCase())
+          .refine((state) => US_STATE_CODES.includes(state as (typeof US_STATE_CODES)[number]), {
+            message: "Invalid US state code",
+          }),
         zipCode: z.string().regex(/^\d{5}$/),
       })
     )

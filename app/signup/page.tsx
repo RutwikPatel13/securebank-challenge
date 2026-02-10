@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { trpc } from "@/lib/trpc/client";
 import Link from "next/link";
+import { checkEmailTypo, isValidPhoneNumber, isValidStateCode } from "@/lib/validation";
 
 type SignupFormData = {
   email: string;
@@ -83,8 +84,11 @@ export default function SignupPage() {
                   {...register("email", {
                     required: "Email is required",
                     pattern: {
-                      value: /^\S+@\S+$/i,
+                      value: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
                       message: "Invalid email address",
+                    },
+                    validate: {
+                      noTypos: checkEmailTypo,
                     },
                   })}
                   type="email"
@@ -179,13 +183,14 @@ export default function SignupPage() {
                 <input
                   {...register("phoneNumber", {
                     required: "Phone number is required",
-                    pattern: {
-                      value: /^\d{10}$/,
-                      message: "Phone number must be 10 digits",
+                    validate: {
+                      validFormat: (value) =>
+                        isValidPhoneNumber(value) ||
+                        "Phone number must be a valid US number (10 digits) or international format (+country code)",
                     },
                   })}
                   type="tel"
-                  placeholder="1234567890"
+                  placeholder="(123) 456-7890 or +1-123-456-7890"
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
                 />
                 {errors.phoneNumber && <p className="mt-1 text-sm text-red-600">{errors.phoneNumber.message}</p>}
@@ -276,14 +281,15 @@ export default function SignupPage() {
                   <input
                     {...register("state", {
                       required: "State is required",
-                      pattern: {
-                        value: /^[A-Z]{2}$/,
-                        message: "Use 2-letter state code",
+                      validate: {
+                        validState: (value) =>
+                          isValidStateCode(value) || "Invalid US state code (e.g., CA, NY, TX)",
                       },
                     })}
                     type="text"
                     placeholder="CA"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+                    maxLength={2}
+                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border uppercase"
                   />
                   {errors.state && <p className="mt-1 text-sm text-red-600">{errors.state.message}</p>}
                 </div>
