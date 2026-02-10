@@ -35,6 +35,63 @@ function isValidCardNumber(cardNumber: string): boolean {
   return sum % 10 === 0;
 }
 
+// Card type detection with comprehensive prefix ranges
+// Based on ISO/IEC 7812 and card network specifications
+type CardType = "visa" | "mastercard" | "amex" | "discover" | "unknown";
+
+function detectCardType(cardNumber: string): CardType {
+  const digits = cardNumber.replace(/[\s-]/g, "");
+
+  if (!digits || digits.length < 1) return "unknown";
+
+  // Visa: Starts with 4, length 13, 16, or 19
+  if (digits.startsWith("4")) {
+    return "visa";
+  }
+
+  // American Express: Starts with 34 or 37, length 15
+  if (digits.startsWith("34") || digits.startsWith("37")) {
+    return "amex";
+  }
+
+  // Mastercard: 51-55 or 2221-2720
+  const first2 = parseInt(digits.substring(0, 2), 10);
+  const first4 = parseInt(digits.substring(0, 4), 10);
+
+  if ((first2 >= 51 && first2 <= 55) || (first4 >= 2221 && first4 <= 2720)) {
+    return "mastercard";
+  }
+
+  // Discover: 6011, 622126-622925, 644-649, 65
+  if (digits.startsWith("6011") || digits.startsWith("65")) {
+    return "discover";
+  }
+  const first6 = parseInt(digits.substring(0, 6), 10);
+  if (first6 >= 622126 && first6 <= 622925) {
+    return "discover";
+  }
+  const first3 = parseInt(digits.substring(0, 3), 10);
+  if (first3 >= 644 && first3 <= 649) {
+    return "discover";
+  }
+
+  return "unknown";
+}
+
+function isValidCardType(cardNumber: string): { valid: boolean; cardType: CardType; message?: string } {
+  const cardType = detectCardType(cardNumber);
+
+  if (cardType === "unknown") {
+    return {
+      valid: false,
+      cardType,
+      message: "Unsupported card type. We accept Visa, Mastercard, American Express, and Discover.",
+    };
+  }
+
+  return { valid: true, cardType };
+}
+
 interface FundingModalProps {
   accountId: number;
   onClose: () => void;
@@ -154,15 +211,10 @@ export function FundingModal({ accountId, onClose, onSuccess }: FundingModalProp
                 validate: {
                   validCard: (value) => {
                     if (fundingType !== "card") return true;
-                    // Check card type prefix (Visa, Mastercard, Amex, Discover)
-                    const validPrefix =
-                      value.startsWith("4") || // Visa
-                      value.startsWith("5") || // Mastercard
-                      value.startsWith("34") || // Amex
-                      value.startsWith("37") || // Amex
-                      value.startsWith("6"); // Discover
-                    if (!validPrefix) {
-                      return "Invalid card type";
+                    // Check card type using comprehensive prefix detection
+                    const cardTypeResult = isValidCardType(value);
+                    if (!cardTypeResult.valid) {
+                      return cardTypeResult.message;
                     }
                     // Validate using Luhn algorithm
                     if (!isValidCardNumber(value)) {
