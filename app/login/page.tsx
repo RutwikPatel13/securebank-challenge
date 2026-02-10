@@ -27,8 +27,8 @@ export default function LoginPage() {
       setError("");
       await loginMutation.mutateAsync(data);
       router.push("/dashboard");
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Invalid credentials");
+    } catch (err: any) {
+      setError(err.message || "Invalid credentials");
     }
   };
 
@@ -88,7 +88,7 @@ export default function LoginPage() {
         </form>
 
         <p className="text-center text-sm text-gray-600">
-          Don&apos;t have an account?{" "}
+          Don't have an account?{" "}
           <Link href="/signup" className="font-medium text-blue-600 hover:text-blue-500">
             Create one
           </Link>

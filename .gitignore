@@ -53,3 +53,6 @@ bank.db
 # IDE
 .vscode/
 .idea/
+
+# Task tracker (local only)
+docs/TASK-TRACKER.md
