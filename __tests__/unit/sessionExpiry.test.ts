@@ -3,15 +3,6 @@
  */
 import { expect as jestExpect } from "@jest/globals";
 
-/**
- * Session Expiry Tests - PERF-403
- * 
- * Tests for the session expiry buffer logic:
- * - Sessions within 30 seconds of expiry should be treated as expired
- * - Sessions beyond buffer period should be valid
- * - Expired sessions should be invalid
- */
-
 describe("Session Expiry - PERF-403", () => {
   const EXPIRY_BUFFER_MS = 30000; // 30 seconds
 

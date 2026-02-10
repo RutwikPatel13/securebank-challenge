@@ -172,10 +172,12 @@ export const accountRouter = router({
         });
       }
 
+      // Order by createdAt descending (newest first) for consistent display
       const accountTransactions = await db
         .select()
         .from(transactions)
-        .where(eq(transactions.accountId, input.accountId));
+        .where(eq(transactions.accountId, input.accountId))
+        .orderBy(desc(transactions.createdAt));
 
       const enrichedTransactions = [];
       for (const transaction of accountTransactions) {
