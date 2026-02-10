@@ -5,7 +5,7 @@ import crypto from "crypto";
 
 const ALGORITHM = "aes-256-gcm";
 const IV_LENGTH = 16; // 128 bits for GCM
-const AUTH_TAG_LENGTH = 16; // 128 bits authentication tag
+// AUTH_TAG_LENGTH is 16 bytes (128 bits) - used implicitly by GCM mode
 
 // Get encryption key from environment or use a default for development
 // In production, this MUST be set via environment variable and stored securely (e.g., AWS KMS, HashiCorp Vault)
