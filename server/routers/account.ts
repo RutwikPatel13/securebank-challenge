@@ -72,15 +72,23 @@ export const accountRouter = router({
 
   fundAccount: protectedProcedure
     .input(
-      z.object({
-        accountId: z.number(),
-        amount: z.number().positive(),
-        fundingSource: z.object({
-          type: z.enum(["card", "bank"]),
-          accountNumber: z.string(),
-          routingNumber: z.string().optional(),
-        }),
-      })
+      z
+        .object({
+          accountId: z.number(),
+          amount: z.number().min(0.01, "Amount must be at least $0.01"),
+          fundingSource: z.object({
+            type: z.enum(["card", "bank"]),
+            accountNumber: z.string(),
+            routingNumber: z.string().optional(),
+          }),
+        })
+        .refine(
+          (data) => data.fundingSource.type !== "bank" || !!data.fundingSource.routingNumber,
+          {
+            message: "Routing number is required for bank transfers",
+            path: ["fundingSource", "routingNumber"],
+          }
+        )
     )
     .mutation(async ({ input, ctx }) => {
       const amount = parseFloat(input.amount.toString());

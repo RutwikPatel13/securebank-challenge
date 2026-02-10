@@ -102,16 +102,20 @@ export function FundingModal({ accountId, onClose, onSuccess }: FundingModalProp
                 {...register("amount", {
                   required: "Amount is required",
                   pattern: {
-                    value: /^\d+\.?\d{0,2}$/,
-                    message: "Invalid amount format",
+                    // Reject multiple leading zeros (e.g., "00100" or "007.50")
+                    // Allow: "0.50", "100", "100.00", "0"
+                    value: /^(?:0|[1-9]\d*)(?:\.\d{1,2})?$/,
+                    message: "Invalid amount format (no leading zeros allowed)",
                   },
-                  min: {
-                    value: 0.0,
-                    message: "Amount must be at least $0.01",
-                  },
-                  max: {
-                    value: 10000,
-                    message: "Amount cannot exceed $10,000",
+                  validate: {
+                    minAmount: (value) => {
+                      const num = parseFloat(value);
+                      return num >= 0.01 || "Amount must be at least $0.01";
+                    },
+                    maxAmount: (value) => {
+                      const num = parseFloat(value);
+                      return num <= 10000 || "Amount cannot exceed $10,000";
+                    },
                   },
                 })}
                 type="text"
