@@ -26,7 +26,7 @@ export function TRPCProvider({ children }: { children: React.ReactNode }) {
             return fetch(url, {
               ...options,
               credentials: "same-origin",
-            });
+            } as RequestInit);
           },
         }),
       ],
