@@ -24,3 +24,17 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Fix for dark mode: ensure form inputs have dark text on light background */
+input,
+textarea,
+select {
+  color: #171717;
+  background-color: #ffffff;
+}
+
+/* Ensure placeholder text is visible in dark mode */
+input::placeholder,
+textarea::placeholder {
+  color: #9ca3af;
+}
