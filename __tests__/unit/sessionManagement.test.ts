@@ -4,13 +4,6 @@
 import { expect as jestExpect } from "@jest/globals";
 
 /**
- * Session Management Tests - SEC-304
- * 
- * These tests verify the session management logic:
- * 1. Single session policy: Only one active session per user
- * 2. Login invalidates all existing sessions
- * 3. Logout invalidates all sessions for the user
- * 
  * Note: These are unit tests for the logic. Integration tests would
  * require a full database setup.
  */
