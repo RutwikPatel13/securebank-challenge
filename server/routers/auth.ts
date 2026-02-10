@@ -182,17 +182,33 @@ export const authRouter = router({
     }),
 
   logout: publicProcedure.mutation(async ({ ctx }) => {
-    if (ctx.user) {
-      // Delete ALL sessions for this user (invalidate all devices)
-      await db.delete(sessions).where(eq(sessions.userId, ctx.user.id));
-    }
-
+    // Clear the session cookie regardless of user state
     if ("setHeader" in ctx.res) {
       ctx.res.setHeader("Set-Cookie", `session=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0`);
     } else {
       (ctx.res as Headers).set("Set-Cookie", `session=; Path=/; HttpOnly; SameSite=Strict; Max-Age=0`);
     }
 
-    return { success: true, message: ctx.user ? "Logged out successfully" : "No active session" };
+    if (!ctx.user) {
+      // No active session found - report failure
+      return { success: false, message: "No active session to logout" };
+    }
+
+    // Delete ALL sessions for this user (invalidate all devices)
+    await db.delete(sessions).where(eq(sessions.userId, ctx.user.id));
+
+    // Verify sessions were actually deleted
+    const remainingSessions = db
+      .select()
+      .from(sessions)
+      .where(eq(sessions.userId, ctx.user.id))
+      .all();
+
+    if (remainingSessions.length > 0) {
+      // Sessions still exist - deletion failed
+      return { success: false, message: "Failed to invalidate all sessions" };
+    }
+
+    return { success: true, message: "Logged out successfully" };
   }),
 });
